@@ -76,7 +76,7 @@ export class Tree {
     }
   }
 
-  insertRecursive(root, value) {
+  insertRecursive(value, root = this.root) {
     if (root === null) {
       return new Node(value);
     }
@@ -86,9 +86,9 @@ export class Tree {
     }
 
     if (value < root.data) {
-      root.left = this.insertRecursive(root.left, value);
+      root.left = this.insertRecursive(value, root.left);
     } else if (value > root.data) {
-      root.right = this.insertRecursive(root.right, value);
+      root.right = this.insertRecursive(value, root.right);
     }
 
     return root;
@@ -97,7 +97,7 @@ export class Tree {
   deleteItemRec(root, value) {
     if (root === null) {
       console.log(`${value} not found in tree.`);
-      return;
+      return null;
     }
 
     if (root.data === value) {
@@ -147,5 +147,138 @@ export class Tree {
     } else if (value > root.data) {
       return this.find(value, root.right);
     }
+  }
+
+  levelOrder(callback) {
+    if (!callback) {
+      throw new Error('No callback argument provided');
+    }
+
+    let queue = [this.root];
+
+    while (queue.length > 0) {
+      const currentNode = queue.shift();
+      callback(currentNode);
+      if (currentNode.left) {
+        queue.push(currentNode.left);
+      }
+      if (currentNode.right) {
+        queue.push(currentNode.right);
+      }
+    }
+  }
+
+  levelOrderRec(callback, queue = [this.root]) {
+    if (!callback) {
+      throw new Error('No callback argument provided');
+    }
+
+    if (queue.length === 0) {
+      return;
+    }
+
+    const currentNode = queue.shift();
+    callback(currentNode);
+
+    if (currentNode.left) {
+      queue.push(currentNode.left);
+    }
+    if (currentNode.right) {
+      queue.push(currentNode.right);
+    }
+
+    this.levelOrderRec(callback, queue);
+  }
+
+  printNode = (node) => {
+    if (node) console.log(node.data);
+  };
+
+  addToArray = (node) => {
+    if (node) this.dataArray.push(node.data);
+  };
+
+  preOrderRec(callback, root = this.root) {
+    if (!callback) {
+      throw new Error('No callback argument provided');
+    }
+
+    if (!root) {
+      return;
+    }
+
+    callback(root);
+    this.preOrderRec(callback, root.left);
+    this.preOrderRec(callback, root.right);
+  }
+
+  inOrderRec(callback, root = this.root) {
+    if (!callback) {
+      throw new Error('No callback argument provided');
+    }
+
+    if (!root) {
+      return;
+    }
+
+    this.inOrderRec(callback, root.left);
+    callback(root);
+    this.inOrderRec(callback, root.right);
+  }
+
+  postOrderRec(callback, root = this.root) {
+    if (!callback) {
+      throw new Error('No callback argument provided');
+    }
+
+    if (!root) {
+      return;
+    }
+
+    this.postOrderRec(callback, root.left);
+    this.postOrderRec(callback, root.right);
+    callback(root);
+  }
+
+  height(node = this.root) {
+    if (node === null) return -1;
+
+    const leftHeight = this.height(node.left);
+    const rightHeight = this.height(node.right);
+
+    return 1 + Math.max(leftHeight, rightHeight);
+  }
+
+  depth(node, root = this.root) {
+    if (root === null) return null;
+
+    let dist = -1;
+
+    if (
+      root === node ||
+      (dist = this.depth(node, root.left)) >= 0 ||
+      (dist = this.depth(node, root.right)) >= 0
+    ) {
+      return dist + 1;
+    }
+
+    return dist;
+  }
+
+  isBalanced(node = this.root) {
+    const leftHeight = this.height(node.left);
+    const rightHeight = this.height(node.right);
+
+    if (leftHeight > rightHeight + 1 || leftHeight < rightHeight - 1) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  rebalance() {
+    this.dataArray = [];
+    this.inOrderRec(this.addToArray);
+    this.root = this.buildTree(this.dataArray);
   }
 }
